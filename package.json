@@ -1,0 +1,30 @@
+{
+  "name": "enedis-backend-render",
+  "version": "1.0.0",
+  "description": "Backend Node.js pour l'API Enedis - Déploiement sur Render.com",
+  "main": "server-render.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server-render.js",
+    "dev": "nodemon server-render.js"
+  },
+  "keywords": [
+    "enedis",
+    "electricity",
+    "outage",
+    "api",
+    "render"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
