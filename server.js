@@ -159,29 +159,88 @@ app.post('/api/outage', async (req, res) => {
 app.get('/api/check/:city', async (req, res) => {
     try {
         const { city } = req.params;
+        
+        console.log(`📍 Request: /api/check/${city}`);
 
         // 1. Géocodage
-        const geoResponse = await axios.get(`http://localhost:${PORT}/api/geocode/${city}`);
+        console.log(`🔍 Géocodage de ${city}...`);
+        const geoResponse = await axios.get(`${GEO_API_URL}`, {
+            params: {
+                nom: city,
+                fields: 'nom,code,codesPostaux,centre,codeDepartement',
+                format: 'json',
+                geometry: 'centre'
+            },
+            timeout: 10000
+        });
         
-        if (!geoResponse.data.success) {
+        if (!geoResponse.data || geoResponse.data.length === 0) {
+            console.log(`❌ Ville non trouvée: ${city}`);
             return res.status(404).json({
                 error: 'Ville non trouvée',
                 city: city
             });
         }
 
-        const geoData = geoResponse.data.data;
+        const commune = geoResponse.data[0];
+        const geoData = {
+            name: commune.nom,
+            insee: commune.code,
+            postcode: commune.codesPostaux[0],
+            department: commune.codeDepartement,
+            latitude: commune.centre.coordinates[1],
+            longitude: commune.centre.coordinates[0]
+        };
+        
+        console.log(`✅ Géocodage réussi: ${geoData.name}`);
 
         // 2. Vérification des coupures
-        const outageResponse = await axios.post(`http://localhost:${PORT}/api/outage`, {
-            city: geoData.name,
+        console.log(`🔍 Vérification des coupures pour ${geoData.name}...`);
+        const enedisURL = `https://www.enedis.fr/resultat-panne-interruption`;
+        const params = {
+            adresse: geoData.name,
             insee: geoData.insee,
-            latitude: geoData.latitude,
-            longitude: geoData.longitude,
-            department: geoData.department,
-            postcode: geoData.postcode
-        });
+            long: geoData.longitude,
+            lat: geoData.latitude,
+            type: 'municipality',
+            CPVille: `${geoData.name} ${geoData.postcode}`,
+            street: '',
+            name: geoData.name,
+            departement: geoData.department,
+            district: '',
+            city: geoData.name
+        };
 
+        let outageInfo = {
+            hasOutage: false,
+            message: 'Informations non disponibles',
+            status: 'unknown',
+            details: []
+        };
+
+        try {
+            const outageResponse = await axios.get(enedisURL, {
+                params: params,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8',
+                    'Referer': 'https://www.enedis.fr/'
+                },
+                timeout: 15000
+            });
+
+            const $ = cheerio.load(outageResponse.data);
+            outageInfo = extractOutageInfo($);
+            console.log(`✅ Vérification coupure réussie: ${outageInfo.status}`);
+            
+        } catch (enedisError) {
+            console.warn(`⚠️  Erreur lors de la vérification Enedis (non bloquante): ${enedisError.message}`);
+            outageInfo.message = 'Impossible de vérifier les coupures sur Enedis';
+            outageInfo.error = enedisError.message;
+        }
+
+        // Réponse réussie
         res.json({
             success: true,
             city: geoData.name,
@@ -194,16 +253,21 @@ app.get('/api/check/:city', async (req, res) => {
                     longitude: geoData.longitude
                 }
             },
-            outage: outageResponse.data.data,
+            outage: outageInfo,
             emergencyNumber: `09 72 67 50 ${geoData.department}`,
             timestamp: new Date().toISOString()
         });
+        
+        console.log(`✅ Réponse envoyée pour ${city}`);
 
     } catch (error) {
-        console.error('Erreur vérification complète:', error.message);
+        console.error('❌ Erreur vérification complète:', error.message);
+        console.error('Stack:', error.stack);
+        
         res.status(500).json({
             error: 'Erreur lors de la vérification',
-            message: error.message
+            message: error.message,
+            city: req.params.city
         });
     }
 });
@@ -331,15 +395,27 @@ app.use((req, res) => {
 });
 
 /**
+ * Gestion des erreurs non capturées
+ */
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('❌ Unhandled Rejection:', error);
+});
+
+/**
  * Démarrage du serveur
  */
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`
 ╔═══════════════════════════════════════════════════╗
 ║   🚀 Backend API Enedis - Démarré avec succès    ║
 ╠═══════════════════════════════════════════════════╣
 ║   Port: ${PORT}                                   ║
-║   URL: http://localhost:${PORT}                   ║
+║   Environment: ${process.env.NODE_ENV || 'development'} ║
+║   Node version: ${process.version}                ║
 ╠═══════════════════════════════════════════════════╣
 ║   Endpoints disponibles:                          ║
 ║   • GET  /                                        ║
@@ -350,5 +426,25 @@ app.listen(PORT, () => {
 ╚═══════════════════════════════════════════════════╝
     `);
 });
+
+/**
+ * Gestion de l'arrêt gracieux
+ */
+const gracefulShutdown = () => {
+    console.log('⚠️  Arrêt gracieux du serveur...');
+    server.close(() => {
+        console.log('✅ Serveur arrêté proprement');
+        process.exit(0);
+    });
+    
+    // Force l'arrêt après 10 secondes
+    setTimeout(() => {
+        console.error('⚠️  Forçage de l\'arrêt...');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
 
 module.exports = app;

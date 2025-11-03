@@ -1,0 +1,273 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                   🔧 FIX APPLIQUÉ - ERREUR 404                              ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+❌ ERREUR CORRIGÉE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Erreurs observées :
+  • Request failed with status code 404
+  • npm error signal SIGTERM
+  • Crash du serveur sur Render
+
+Cause : 
+  Route /api/check/:city essayait d'appeler localhost
+  → localhost n'existe pas sur Render
+
+
+✅ SOLUTION APPLIQUÉE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Modifications dans server.js :
+
+1. Suppression des appels localhost
+   ❌ Avant : axios.get('http://localhost:3000/api/geocode/...')
+   ✅ Après : Appels directs à l'API de géocodage
+
+2. Gestion d'erreurs améliorée
+   • Logs détaillés pour chaque étape
+   • Try/catch non-bloquants
+   • Messages d'erreur explicites
+
+3. Arrêt gracieux du serveur
+   • Gestion de SIGTERM/SIGINT
+   • Fermeture propre des connexions
+
+4. Binding sur 0.0.0.0
+   • Nécessaire pour Render
+   • Écoute sur toutes les interfaces
+
+
+📝 FICHIERS MODIFIÉS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ server.js             → Fix complet appliqué
+✓ FIX_404_ERROR.md      → Documentation du fix (NOUVEAU)
+✓ fix-404-error.sh      → Script automatique (NOUVEAU)
+✓ FIX_404_SUMMARY.txt   → Ce fichier (NOUVEAU)
+
+
+🚀 APPLIQUER LE FIX MAINTENANT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Méthode 1 : SCRIPT AUTOMATIQUE
+─────────────────────────────────────────────
+
+  $ ./fix-404-error.sh
+
+  Le script va :
+  ✓ Vérifier que le fix est appliqué
+  ✓ Créer le commit
+  ✓ Pousser sur GitHub
+  ✓ Afficher les instructions de test
+
+
+Méthode 2 : MANUELLE
+─────────────────────────────────────────────
+
+  $ git add server.js
+  $ git commit -m "Fix: Remove localhost calls for Render"
+  $ git push
+
+  → Render redéploie automatiquement en 2-3 minutes
+
+
+⏱️ APRÈS LE PUSH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Render détecte le changement
+2. Build automatique : 2-3 minutes
+3. Déploiement : 30 secondes
+4. Total : ~3 minutes
+
+Surveillez les logs :
+  Dashboard Render → Votre service → Logs
+
+
+✅ VÉRIFIER QUE ÇA FONCTIONNE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Test 1 : Status API
+─────────────────────────────────────────────
+
+  $ curl https://enedis-backend-pdqw.onrender.com/
+
+  Résultat attendu :
+  {
+    "status": "ok",
+    "message": "API Enedis Coupure - Backend opérationnel"
+  }
+
+
+Test 2 : Géocodage
+─────────────────────────────────────────────
+
+  $ curl https://enedis-backend-pdqw.onrender.com/api/geocode/Lyon
+
+  Résultat attendu : Données de Lyon
+
+
+Test 3 : Vérification complète (CELUI QUI PLANTAIT)
+─────────────────────────────────────────────
+
+  $ curl https://enedis-backend-pdqw.onrender.com/api/check/Lyon
+
+  Résultat attendu :
+  {
+    "success": true,
+    "city": "Lyon",
+    "location": { ... },
+    "outage": { ... },
+    "emergencyNumber": "09 72 67 50 69"
+  }
+
+
+Test 4 : Frontend
+─────────────────────────────────────────────
+
+  Ouvrir : public/index.html
+  Rechercher une ville
+  ✅ Doit afficher les résultats sans erreur
+
+
+📊 LOGS ATTENDUS SUR RENDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Au démarrage :
+  ╔═══════════════════════════════════════════════════╗
+  ║   🚀 Backend API Enedis - Démarré avec succès    ║
+  ║   Port: 10000                                     ║
+  ║   Environment: production                         ║
+  ║   Node version: v20.11.0                          ║
+  ╚═══════════════════════════════════════════════════╝
+
+Lors d'une requête /api/check/Lyon :
+  📍 Request: /api/check/Lyon
+  🔍 Géocodage de Lyon...
+  ✅ Géocodage réussi: Lyon
+  🔍 Vérification des coupures pour Lyon...
+  ✅ Vérification coupure réussie: ok
+  ✅ Réponse envoyée pour Lyon
+
+Si tout est OK : Pas d'erreur 404, pas de SIGTERM
+
+
+🔍 AVANT/APRÈS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AVANT (❌ Ne fonctionnait pas sur Render) :
+  
+  app.get('/api/check/:city', async (req, res) => {
+    // ❌ Appel localhost qui n'existe pas sur Render
+    const geoResponse = await axios.get(
+      `http://localhost:${PORT}/api/geocode/${city}`
+    );
+  });
+
+APRÈS (✅ Fonctionne partout) :
+
+  app.get('/api/check/:city', async (req, res) => {
+    // ✅ Appel direct à l'API externe
+    const geoResponse = await axios.get(GEO_API_URL, {
+      params: { nom: city, ... }
+    });
+    
+    // ✅ Gestion d'erreur non-bloquante
+    try {
+      const outageResponse = await axios.get(enedisURL);
+    } catch (error) {
+      console.warn('Erreur non bloquante');
+    }
+  });
+
+
+💡 POURQUOI CE FIX ?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Le problème :
+  • /api/check/:city appelait d'autres routes via localhost
+  • Sur Render, localhost:3000 n'existe pas
+  • Résultat : Erreur 404 → Crash SIGTERM
+
+La solution :
+  • Appels directs aux APIs externes
+  • Pas de dépendance à localhost
+  • Gestion d'erreurs robuste
+  • Fonctionne en local ET sur Render
+
+
+🎯 CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Avant de pusher :
+  ✓ server.js vérifié (fix appliqué)
+  ✓ Git initialisé
+
+Après le push :
+  □ Code poussé sur GitHub
+  □ Render a redéployé (voir Dashboard)
+  □ Logs montrent "Démarré avec succès"
+  □ Test 1 : Status API (OK)
+  □ Test 2 : Géocodage (OK)
+  □ Test 3 : /api/check/:city (OK)
+  □ Pas d'erreur 404
+  □ Pas d'erreur SIGTERM
+  □ Frontend fonctionne
+
+
+🔄 SI LE PROBLÈME PERSISTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Clear build cache
+   Dashboard → Manual Deploy → Clear build cache & deploy
+
+2. Vérifier les logs en détail
+   Dashboard → Logs → Chercher les erreurs
+
+3. Tester localement
+   npm start
+   curl http://localhost:3000/api/check/Lyon
+   → Doit fonctionner
+
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  FIX_404_ERROR.md    → Guide complet du fix
+  DEPLOYED.txt        → Info sur le déploiement
+  TROUBLESHOOTING.md  → Dépannage général
+
+
+⚡ COMMANDES RAPIDES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Appliquer le fix
+$ ./fix-404-error.sh
+
+# Ou manuellement
+$ git add server.js && git commit -m "Fix 404" && git push
+
+# Tester après déploiement
+$ curl https://enedis-backend-pdqw.onrender.com/api/check/Lyon
+
+
+📞 LIENS UTILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Dashboard Render : https://dashboard.render.com
+  API URL          : https://enedis-backend-pdqw.onrender.com
+  Logs en direct   : Dashboard → Services → Logs
+  Test API         : test-render-api.html
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                    ✅ FIX PRÊT À ÊTRE APPLIQUÉ
+
+                    Lancez : ./fix-404-error.sh
+                    Ou : git push
+
+═══════════════════════════════════════════════════════════════════════════════
