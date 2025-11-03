@@ -1,0 +1,202 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║                   ✅ FIX APPLIQUÉ - NODE.JS 20                              ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+❌ PROBLÈME RÉSOLU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Erreur rencontrée sur Render :
+  ReferenceError: File is not defined
+  at /app/node_modules/undici/lib/web/webidl/index.js:531:48
+
+Cause : Node.js 18 incompatible avec axios/undici récent
+
+
+✅ SOLUTION APPLIQUÉE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Mise à jour vers Node.js 20.11.0
+
+
+📝 FICHIERS MODIFIÉS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ package.json        → engines: "node": ">=20.0.0"
+✓ render.yaml         → envVars: NODE_VERSION: 20.11.0
+✓ .nvmrc              → 20.11.0 (NOUVEAU)
+✓ Dockerfile          → FROM node:20-alpine
+✓ TROUBLESHOOTING.md  → Guide complet (NOUVEAU)
+✓ FIX_README.md       → Documentation du fix (NOUVEAU)
+✓ fix-node-version.sh → Script automatique (NOUVEAU)
+
+
+🚀 COMMENT APPLIQUER LE FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Méthode 1 : SCRIPT AUTOMATIQUE (Recommandé)
+─────────────────────────────────────────────
+
+  $ ./fix-node-version.sh
+
+  Le script va :
+  ✓ Vérifier que tous les fichiers sont à jour
+  ✓ Créer le commit automatiquement
+  ✓ Pousser sur GitHub
+  ✓ Afficher les prochaines étapes
+
+
+Méthode 2 : MANUELLE
+─────────────────────────────────────────────
+
+  $ git add .
+  $ git commit -m "Fix: Update to Node.js 20"
+  $ git push
+
+  → Render redéploie automatiquement avec Node.js 20
+
+
+⏱️ TEMPS DE REDÉPLOIEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Après le push :
+  • Render détecte le changement
+  • Build automatique : 2-3 minutes
+  • Déploiement : 30 secondes
+  • Total : ~3 minutes
+
+
+✅ VÉRIFICATION APRÈS DÉPLOIEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Vérifier les logs sur Render
+   
+   Dashboard → Votre service → Logs
+   
+   Cherchez : "Node version: v20.11.0"
+
+
+2. Tester l'API
+
+   $ curl https://votre-app.onrender.com/
+   
+   Résultat attendu : JSON avec status "ok"
+
+
+3. Test complet
+
+   $ curl https://votre-app.onrender.com/api/check/Lyon
+   
+   Résultat attendu : Données de la ville
+
+
+🔄 SI LE PROBLÈME PERSISTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Option 1 : Clear Build Cache
+  
+  1. Dashboard Render → Votre service
+  2. Manual Deploy
+  3. Clear build cache & deploy
+
+
+Option 2 : Vérifier la version
+
+  Ajoutez temporairement dans render.yaml :
+  
+  buildCommand: |
+    node --version
+    npm install
+
+
+Option 3 : Support
+
+  Consultez TROUBLESHOOTING.md pour plus de détails
+
+
+📊 VERSIONS AVANT/APRÈS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────┬─────────────┬─────────────┬──────────────┐
+│  Composant  │    Avant    │    Après    │    Status    │
+├─────────────┼─────────────┼─────────────┼──────────────┤
+│  Node.js    │  18.20.8    │  20.11.0    │  ✅ Fixé     │
+│  axios      │  1.6.0      │  1.6.2      │  ✅ Upgraded │
+│  cheerio    │  rc.12      │  rc.12      │  ✅ OK       │
+│  express    │  4.18.2     │  4.18.2     │  ✅ OK       │
+└─────────────┴─────────────┴─────────────┴──────────────┘
+
+
+💡 POURQUOI CE FIX ?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Le problème :
+  • axios 1.6+ utilise "undici" pour les requêtes HTTP
+  • undici nécessite l'API "File" de Node.js
+  • Cette API n'existe que dans Node.js 20+
+
+La solution :
+  • Upgrade vers Node.js 20 qui inclut l'API File
+  • Aucun changement de code nécessaire
+  • Juste une mise à jour de version
+
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  FIX_README.md         → Vue d'ensemble du fix
+  TROUBLESHOOTING.md    → Guide complet de dépannage
+  RENDER_DEPLOYMENT.md  → Guide de déploiement général
+
+
+🎯 CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Avant de pusher :
+  ✓ package.json vérifié (Node 20)
+  ✓ render.yaml vérifié (NODE_VERSION)
+  ✓ .nvmrc créé
+  ✓ Dockerfile mis à jour
+
+Après le push :
+  □ Code poussé sur GitHub
+  □ Render a redéployé (voir Dashboard)
+  □ Logs vérifiés (Node v20.x.x)
+  □ API testée avec curl
+  □ Réponse JSON correcte obtenue
+
+
+⚡ COMMANDES RAPIDES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Appliquer le fix
+$ ./fix-node-version.sh
+
+# Ou manuellement
+$ git add . && git commit -m "Fix: Node.js 20" && git push
+
+# Tester après déploiement
+$ curl https://votre-app.onrender.com/
+
+# Vérifier une ville
+$ curl https://votre-app.onrender.com/api/check/Lyon
+
+
+📞 LIENS UTILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Dashboard Render  : https://dashboard.render.com
+  Logs en direct    : Dashboard → Services → Logs
+  Documentation     : Voir TROUBLESHOOTING.md
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                    ✅ FIX PRÊT À ÊTRE APPLIQUÉ
+
+                    Lancez : ./fix-node-version.sh
+                    Ou : git push
+
+═══════════════════════════════════════════════════════════════════════════════
