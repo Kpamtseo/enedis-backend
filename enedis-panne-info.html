@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Info Pannes Enedis - Assistant Coupures Électricité</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s;
+            width: 100%;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .department-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .dept-btn {
+            padding: 10px;
+            background: #f8f8f8;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .dept-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .alert {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .checklist {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .checklist li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .emergency-number {
+            font-size: 2em;
+            color: #dc3545;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8d7da;
+            border-radius: 10px;
+        }
+
+        .map-placeholder {
+            background: #e9ecef;
+            height: 300px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 1.1em;
+            margin-top: 15px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ok {
+            background: #28a745;
+        }
+
+        .status-warning {
+            background: #ffc107;
+        }
+
+        .status-error {
+            background: #dc3545;
+        }
+
+        .diagnostic-step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .diagnostic-step:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .department-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Info Pannes Enedis</h1>
+            <p class="subtitle">Votre assistant pour gérer les coupures d'électricité</p>
+        </header>
+
+        <div class="grid">
+            <!-- Recherche de panne -->
+            <div class="card">
+                <h2><span class="icon">🔍</span> Rechercher une panne</h2>
+                <input type="text" class="search-box" id="addressInput" placeholder="Entrez votre adresse ou code postal">
+                <button class="btn" onclick="searchOutage()">Rechercher</button>
+                <div id="searchResult" class="hidden"></div>
+            </div>
+
+            <!-- Numéro d'urgence -->
+            <div class="card">
+                <h2><span class="icon">📞</span> Numéro d'urgence</h2>
+                <p>Sélectionnez votre département :</p>
+                <div class="department-grid" id="deptGrid"></div>
+                <div id="emergencyNumber" class="hidden"></div>
+            </div>
+
+            <!-- Autodiagnostic -->
+            <div class="card">
+                <h2><span class="icon">🔧</span> Autodiagnostic</h2>
+                <p>Identifiez rapidement l'origine de votre coupure :</p>
+                <button class="btn btn-secondary" onclick="startDiagnostic()">Démarrer l'autodiagnostic</button>
+                <div id="diagnosticResult" class="hidden"></div>
+            </div>
+        </div>
+
+        <!-- Carte des pannes -->
+        <div class="card">
+            <h2><span class="icon">🗺️</span> Carte des pannes en temps réel</h2>
+            <div class="map-placeholder">
+                <div>
+                    📍 Carte interactive des zones touchées<br>
+                    <small>(Intégration avec l'API Enedis)</small>
+                </div>
+            </div>
+            <div class="info-box" style="margin-top: 15px;">
+                <p><strong>Légende :</strong></p>
+                <p><span class="status-indicator status-ok"></span> Pas de panne signalée</p>
+                <p><span class="status-indicator status-warning"></span> Panne en cours de résolution</p>
+                <p><span class="status-indicator status-error"></span> Panne signalée</p>
+            </div>
+        </div>
+
+        <!-- Conseils et bons gestes -->
+        <div class="grid">
+            <div class="card">
+                <h2><span class="icon">💡</span> Bons gestes en cas de panne</h2>
+                <ul class="checklist">
+                    <li>Ne touchez pas aux installations électriques endommagées</li>
+                    <li>Débranchez les appareils sensibles (ordinateurs, TV)</li>
+                    <li>Gardez votre réfrigérateur et congélateur fermés</li>
+                    <li>Préparez lampes de poche et bougies (sous surveillance)</li>
+                    <li>N'utilisez jamais de réchaud à gaz ou charbon en intérieur</li>
+                    <li>Conservez votre téléphone chargé</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2><span class="icon">⚠️</span> Situations d'urgence</h2>
+                <div class="alert error">
+                    <strong>Contactez immédiatement le 09 72 67 50 XX si :</strong>
+                    <ul>
+                        <li>Vous voyez un câble électrique à terre</li>
+                        <li>Vous sentez une odeur de brûlé</li>
+                        <li>Vous observez des étincelles</li>
+                        <li>Votre compteur fait un bruit anormal</li>
+                        <li>Présence d'eau près des installations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations complémentaires -->
+        <div class="card">
+            <h2><span class="icon">ℹ️</span> Informations utiles</h2>
+            <div class="grid" style="gap: 15px;">
+                <div class="info-box">
+                    <h3>📅 Coupures programmées</h3>
+                    <p>Enedis vous informe par courrier, SMS ou email des travaux planifiés sur le réseau.</p>
+                    <a href="https://coupures-temporaires.enedis.fr/" target="_blank" style="color: #667eea;">
+                        → Consulter les coupures programmées
+                    </a>
+                </div>
+                
+                <div class="info-box">
+                    <h3>💰 Indemnisation</h3>
+                    <p>Au-delà de 5 heures de coupure : <strong>2€ HT par kVA</strong> par tranche de 5 heures.</p>
+                    <p><small>Montant automatiquement reporté sur votre prochaine facture.</small></p>
+                </div>
+                
+                <div class="info-box">
+                    <h3>📱 Application Enedis</h3>
+                    <p>Le service "Panne et Interruption" remplace l'ancienne application "Enedis à mes côtés".</p>
+                    <a href="https://www.enedis.fr/panne-et-interruption" target="_blank" style="color: #667eea;">
+                        → Accéder au service en ligne
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ rapide -->
+        <div class="card">
+            <h2><span class="icon">❓</span> Questions fréquentes</h2>
+            <div class="diagnostic-step" onclick="toggleAnswer('faq1')">
+                <strong>Quelle est la différence entre une panne locale et générale ?</strong>
+                <div id="faq1" class="hidden" style="margin-top: 10px; color: #666;">
+                    <p>• <strong>Panne locale :</strong> Touche uniquement votre habitation (problème de compteur, disjoncteur, installation intérieure)</p>
+                    <p>• <strong>Panne générale :</strong> Affecte plusieurs habitations d'un quartier ou d'une zone (problème sur le réseau Enedis)</p>
+                </div>
+            </div>
+            
+            <div class="diagnostic-step" onclick="toggleAnswer('faq2')">
+                <strong>Mon compteur disjoncte souvent, que faire ?</strong>
+                <div id="faq2" class="hidden" style="margin-top: 10px; color: #666;">
+                    <p>Cela indique probablement que la puissance de votre compteur est trop faible. Avec un compteur Linky, maintenez le bouton "+" quelques secondes pour le réarmer. Si le problème persiste, contactez votre fournisseur pour augmenter la puissance souscrite.</p>
+                </div>
+            </div>
+            
+            <div class="diagnostic-step" onclick="toggleAnswer('faq3')">
+                <strong>Qui contacter : Enedis ou mon fournisseur ?</strong>
+                <div id="faq3" class="hidden" style="margin-top: 10px; color: #666;">
+                    <p>• <strong>Enedis (09 72 67 50 XX) :</strong> Pour les pannes générales, problèmes de réseau, urgences électriques</p>
+                    <p>• <strong>Votre fournisseur :</strong> Pour les factures impayées, changement de puissance, questions contractuelles</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>⚡ Application non officielle - Données issues d'Enedis.fr</p>
+            <p>En cas d'urgence, composez toujours le numéro d'urgence Enedis de votre département</p>
+            <p style="margin-top: 10px;">Créé pour faciliter l'accès aux informations de pannes électriques</p>
+        </footer>
+    </div>
+
+    <script>
+        // Génération des boutons de départements
+        function generateDepartments() {
+            const grid = document.getElementById('deptGrid');
+            for (let i = 1; i <= 95; i++) {
+                if (i === 20) continue; // Corse divisée en 2A et 2B
+                const dept = i.toString().padStart(2, '0');
+                const btn = document.createElement('div');
+                btn.className = 'dept-btn';
+                btn.textContent = dept;
+                btn.onclick = () => showEmergencyNumber(dept);
+                grid.appendChild(btn);
+            }
+            // Ajout Corse
+            ['2A', '2B'].forEach(dept => {
+                const btn = document.createElement('div');
+                btn.className = 'dept-btn';
+                btn.textContent = dept;
+                btn.onclick = () => showEmergencyNumber(dept);
+                grid.appendChild(btn);
+            });
+        }
+
+        function showEmergencyNumber(dept) {
+            const container = document.getElementById('emergencyNumber');
+            container.className = '';
+            container.innerHTML = `
+                <div class="emergency-number">
+                    📞 09 72 67 50 ${dept}
+                </div>
+                <div class="info-box">
+                    <p><strong>Service disponible 24h/24 et 7j/7</strong></p>
+                    <p>Ce numéro est non surtaxé et fonctionne quel que soit votre fournisseur d'électricité.</p>
+                </div>
+            `;
+        }
+
+        function searchOutage() {
+            const address = document.getElementById('addressInput').value;
+            const result = document.getElementById('searchResult');
+            
+            if (!address) {
+                result.className = 'alert error';
+                result.innerHTML = '<p>⚠️ Veuillez entrer une adresse ou un code postal</p>';
+                return;
+            }
+
+            // Simulation de recherche
+            result.className = 'info-box';
+            result.innerHTML = `
+                <h3>Résultats pour : ${address}</h3>
+                <div class="alert success" style="margin-top: 10px;">
+                    <p><span class="status-indicator status-ok"></span> <strong>Aucune panne signalée dans votre zone</strong></p>
+                    <p style="margin-top: 10px;">Le réseau fonctionne normalement. Si vous n'avez pas d'électricité, effectuez un autodiagnostic ou contactez le service dépannage.</p>
+                </div>
+                <p style="margin-top: 10px;"><small>ℹ️ Cette application simule une recherche. Pour des informations en temps réel, visitez <a href="https://www.enedis.fr/panne-et-interruption" target="_blank">enedis.fr/panne-et-interruption</a></small></p>
+            `;
+        }
+
+        function startDiagnostic() {
+            const result = document.getElementById('diagnosticResult');
+            result.className = 'info-box';
+            result.innerHTML = `
+                <h3>🔧 Autodiagnostic rapide</h3>
+                <div class="diagnostic-step" onclick="showDiagnosticStep('step1')">
+                    <strong>1. Vérifiez votre disjoncteur principal</strong>
+                </div>
+                <div id="step1" class="hidden" style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <p>✓ Est-il en position ON (I) ? Si non, remettez-le.</p>
+                    <p>✓ S'il se remet en position OFF immédiatement, débranchez tous vos appareils et réessayez.</p>
+                </div>
+                
+                <div class="diagnostic-step" onclick="showDiagnosticStep('step2')">
+                    <strong>2. Vérifiez vos voisins</strong>
+                </div>
+                <div id="step2" class="hidden" style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <p>✓ Si vos voisins n'ont pas d'électricité non plus, c'est une panne générale.</p>
+                    <p>→ Contactez le 09 72 67 50 XX (votre département)</p>
+                </div>
+                
+                <div class="diagnostic-step" onclick="showDiagnosticStep('step3')">
+                    <strong>3. Vérifiez vos factures</strong>
+                </div>
+                <div id="step3" class="hidden" style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                    <p>✓ Êtes-vous à jour de vos paiements ?</p>
+                    <p>→ Si non, contactez votre fournisseur d'électricité</p>
+                </div>
+                
+                <div class="alert" style="margin-top: 15px;">
+                    <p><strong>Si le problème persiste après ces vérifications :</strong></p>
+                    <p>Contactez le service dépannage Enedis au 09 72 67 50 XX</p>
+                </div>
+            `;
+        }
+
+        function showDiagnosticStep(stepId) {
+            const step = document.getElementById(stepId);
+            step.classList.toggle('hidden');
+        }
+
+        function toggleAnswer(id) {
+            const answer = document.getElementById(id);
+            answer.classList.toggle('hidden');
+        }
+
+        // Initialisation
+        generateDepartments();
+
+        // Gestion de la touche Entrée pour la recherche
+        document.getElementById('addressInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchOutage();
+            }
+        });
+    </script>
+</body>
+</html>

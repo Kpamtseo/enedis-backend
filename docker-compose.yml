@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Backend API
+  api:
+    build: .
+    container_name: enedis-api
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - CORS_ORIGINS=*
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (serveur web simple)
+  frontend:
+    image: nginx:alpine
+    container_name: enedis-frontend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
+networks:
+  default:
+    name: enedis-network

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enedis Coupure - Avec Backend API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .api-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .api-online {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .api-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .search-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-ok {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .result-outage {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .result-scheduled {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+
+        .result-info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .result-error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .emergency-box {
+            background: #dc3545;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .emergency-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .details-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .details-list li {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .search-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Vérification Coupure Enedis</h1>
+            <p style="color: #666; margin-top: 10px;">Avec Backend API en temps réel</p>
+            <div class="api-status" id="apiStatus">
+                <span id="statusText">Vérification...</span>
+            </div>
+        </header>
+
+        <div class="card">
+            <h2>🔍 Rechercher une coupure</h2>
+            <div class="search-group">
+                <input 
+                    type="text" 
+                    class="search-box" 
+                    id="cityInput" 
+                    placeholder="Entrez le nom de votre ville..."
+                    autocomplete="off"
+                >
+                <button class="btn" id="searchBtn" onclick="checkOutage()">
+                    Vérifier
+                </button>
+            </div>
+            <p style="color: #666; font-size: 0.9em;">
+                💡 Exemples: Lyon, Paris, Saint-Priest, Marseille...
+            </p>
+
+            <div id="resultContainer"></div>
+        </div>
+
+        <div class="card">
+            <h2>ℹ️ À propos de cette application</h2>
+            <div style="color: #666; line-height: 1.6;">
+                <p><strong>Cette application utilise un backend Node.js</strong> qui interroge directement le site Enedis.fr pour récupérer les informations de coupure en temps réel.</p>
+                <br>
+                <p><strong>Technologies utilisées :</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Backend: Node.js + Express</li>
+                    <li>Scraping: Axios + Cheerio</li>
+                    <li>Géocodage: API gouvernementale française</li>
+                    <li>Frontend: HTML5 + JavaScript vanilla</li>
+                </ul>
+                <br>
+                <p><strong>Configuration :</strong></p>
+                <p style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    L'API backend doit être démarrée sur <code>http://localhost:3000</code><br>
+                    Lancez le serveur avec: <code>npm start</code>
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <p>⚡ Application utilisant un backend API personnalisé</p>
+            <p>Données récupérées depuis Enedis.fr en temps réel</p>
+        </footer>
+    </div>
+
+    <!-- Configuration API -->
+    <script src="config.js"></script>
+    
+    <script>
+        let isAPIOnline = false;
+
+        // Vérification de l'état de l'API au chargement
+        async function checkAPIStatus() {
+            const statusElement = document.getElementById('apiStatus');
+            const statusText = document.getElementById('statusText');
+
+            try {
+                const response = await fetch(`${API_URL}/`);
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    isAPIOnline = true;
+                    statusElement.className = 'api-status api-online';
+                    statusText.textContent = '✅ API connectée';
+                } else {
+                    throw new Error('API status not ok');
+                }
+            } catch (error) {
+                isAPIOnline = false;
+                statusElement.className = 'api-status api-offline';
+                statusText.textContent = '❌ API déconnectée';
+                
+                showError('Le serveur backend n\'est pas accessible. Assurez-vous qu\'il est démarré sur le port 3000.');
+            }
+        }
+
+        // Fonction principale de vérification
+        async function checkOutage() {
+            const city = document.getElementById('cityInput').value.trim();
+            const resultContainer = document.getElementById('resultContainer');
+            const searchBtn = document.getElementById('searchBtn');
+
+            if (!city) {
+                showError('Veuillez entrer un nom de ville');
+                return;
+            }
+
+            if (!isAPIOnline) {
+                showError('L\'API backend n\'est pas disponible. Vérifiez que le serveur est démarré.');
+                return;
+            }
+
+            // Désactivation du bouton et affichage du loader
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Recherche...';
+            resultContainer.innerHTML = '<div class="loader"></div><p style="text-align: center;">Interrogation de l\'API...</p>';
+
+            try {
+                // Appel à l'API backend
+                const response = await fetch(`${API_URL}/api/check/${encodeURIComponent(city)}`);
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Ville non trouvée. Vérifiez l\'orthographe.');
+                    }
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResult(data);
+
+            } catch (error) {
+                console.error('Erreur:', error);
+                showError(error.message);
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Vérifier';
+            }
+        }
+
+        // Affichage des résultats
+        function displayResult(data) {
+            const resultContainer = document.getElementById('resultContainer');
+            const outage = data.outage;
+
+            // Déterminer la classe CSS selon le statut
+            let resultClass = 'result-info';
+            let statusIcon = 'ℹ️';
+            
+            if (outage.status === 'ok') {
+                resultClass = 'result-ok';
+                statusIcon = '✅';
+            } else if (outage.status === 'outage') {
+                resultClass = 'result-outage';
+                statusIcon = '🔴';
+            } else if (outage.status === 'scheduled') {
+                resultClass = 'result-scheduled';
+                statusIcon = '🟡';
+            }
+
+            // Construction du HTML
+            let html = `
+                <div class="result ${resultClass}">
+                    <h3>${statusIcon} ${data.city}</h3>
+                    <p style="font-size: 1.2em; margin: 10px 0; font-weight: bold;">
+                        ${outage.message}
+                    </p>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Département</div>
+                            <div class="info-value">${data.location.department}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Code INSEE</div>
+                            <div class="info-value">${data.location.insee}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Code Postal</div>
+                            <div class="info-value">${data.location.postcode}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Statut</div>
+                            <div class="info-value">${outage.status.toUpperCase()}</div>
+                        </div>
+                    </div>
+            `;
+
+            // Détails supplémentaires si disponibles
+            if (outage.details && outage.details.length > 0) {
+                html += `
+                    <div style="margin-top: 20px;">
+                        <h4>📋 Détails :</h4>
+                        <ul class="details-list">
+                            ${outage.details.map(detail => `<li>${detail}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // Contenu brut si disponible
+            if (outage.rawContent) {
+                html += `
+                    <details style="margin-top: 15px;">
+                        <summary style="cursor: pointer; color: #667eea; font-weight: bold;">
+                            Afficher le contenu brut
+                        </summary>
+                        <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 0.9em;">
+                            ${outage.rawContent}
+                        </div>
+                    </details>
+                `;
+            }
+
+            // Numéro d'urgence
+            html += `
+                <div class="emergency-box">
+                    <div>📞 Numéro d'urgence Enedis</div>
+                    <div class="emergency-number">${data.emergencyNumber}</div>
+                    <div style="font-size: 0.9em;">Service disponible 24h/24, 7j/7</div>
+                </div>
+            `;
+
+            // Timestamp
+            const date = new Date(data.timestamp);
+            html += `
+                <div style="margin-top: 15px; text-align: center; color: #666; font-size: 0.85em;">
+                    Dernière vérification: ${date.toLocaleString('fr-FR')}
+                </div>
+            `;
+
+            html += '</div>';
+
+            resultContainer.innerHTML = html;
+        }
+
+        // Affichage d'une erreur
+        function showError(message) {
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.innerHTML = `
+                <div class="result result-error">
+                    <h3>❌ Erreur</h3>
+                    <p style="margin-top: 10px;">${message}</p>
+                </div>
+            `;
+        }
+
+        // Gestion de la touche Entrée
+        document.getElementById('cityInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkOutage();
+            }
+        });
+
+        // Message de bienvenue initial
+        function showWelcome() {
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.innerHTML = `
+                <div class="result result-info" style="margin-top: 20px;">
+                    <h3>👋 Bienvenue !</h3>
+                    <p style="margin-top: 10px;">
+                        Cette application utilise un backend API pour récupérer les informations 
+                        de coupure électrique en temps réel depuis Enedis.
+                    </p>
+                    <p style="margin-top: 10px;">
+                        <strong>Pour commencer :</strong> Entrez le nom de votre ville dans le champ ci-dessus.
+                    </p>
+                </div>
+            `;
+        }
+
+        // Initialisation au chargement
+        window.onload = async function() {
+            await checkAPIStatus();
+            showWelcome();
+        };
+    </script>
+</body>
+</html>

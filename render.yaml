@@ -1,0 +1,19 @@
+services:
+  # Backend API
+  - type: web
+    name: enedis-api
+    runtime: node
+    env: node
+    region: frankfurt  # ou oregon, singapore selon votre localisation
+    plan: free  # ou starter, standard, pro selon vos besoins
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGINS
+        value: "*"  # Remplacer par votre domaine frontend en production
+    autoDeploy: true

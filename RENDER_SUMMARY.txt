@@ -1,0 +1,247 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║              🚀 DÉPLOIEMENT SUR RENDER - GUIDE COMPLET                      ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+📦 FICHIERS SPÉCIFIQUES RENDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ render.yaml                  # Configuration automatique Render
+✅ deploy-render.sh             # Script de déploiement automatique  
+✅ RENDER_DEPLOYMENT.md         # Guide complet (tous les détails)
+✅ RENDER_QUICK_START.md        # Guide rapide (5 minutes)
+✅ public/config.js             # Configuration URL API (local/prod)
+
+
+⚡ DÉPLOIEMENT EN 3 ÉTAPES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Méthode 1 : SCRIPT AUTOMATIQUE (Recommandé)
+──────────────────────────────────────────────
+
+  $ ./deploy-render.sh
+
+  Le script fait tout :
+  ✓ Vérifie les fichiers
+  ✓ Configure Git
+  ✓ Créé le commit
+  ✓ Push sur GitHub
+  ✓ Affiche les instructions Render
+
+
+Méthode 2 : MANUELLE
+──────────────────────────────────────────────
+
+  Étape 1 - Git & GitHub
+  $ git init
+  $ git add .
+  $ git commit -m "Deploy to Render"
+  $ git remote add origin https://github.com/USERNAME/enedis-api.git
+  $ git push -u origin main
+
+  Étape 2 - Render.com
+  1. https://render.com → Se connecter avec GitHub
+  2. New + → Blueprint
+  3. Sélectionner votre repo
+  4. Apply
+  
+  Étape 3 - Terminé !
+  Votre API est en ligne en 2-3 minutes
+
+
+🌐 URL DE VOTRE API
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+URL par défaut :
+  https://enedis-api.onrender.com
+
+Ou personnalisée :
+  https://VOTRE-NOM.onrender.com
+
+
+✅ TESTER APRÈS DÉPLOIEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Test 1 - Status API
+  $ curl https://enedis-api.onrender.com/
+
+Test 2 - Géocoder une ville
+  $ curl https://enedis-api.onrender.com/api/geocode/Lyon
+
+Test 3 - Vérifier une coupure
+  $ curl https://enedis-api.onrender.com/api/check/Saint-Priest
+
+
+🔧 CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Le fichier render.yaml contient toute la config :
+
+  services:
+    - type: web
+      name: enedis-api
+      runtime: node
+      buildCommand: npm install
+      startCommand: npm start
+      plan: free  # ou starter, standard, pro
+
+
+Variables d'environnement (automatiques via render.yaml) :
+  • NODE_ENV = production
+  • PORT = 10000
+  • CORS_ORIGINS = *
+
+
+📱 CONNECTER LE FRONTEND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Méthode 1 : Modifier config.js
+  Ouvrir public/config.js
+  Changer : CURRENT: 'LOCAL'
+  En      : CURRENT: 'RENDER'
+
+Méthode 2 : Modifier directement index.html
+  const API_URL = 'https://enedis-api.onrender.com';
+
+
+🔄 MISES À JOUR AUTOMATIQUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Chaque push sur GitHub redéploie automatiquement :
+
+  $ git add .
+  $ git commit -m "Update API"
+  $ git push
+
+  → Render redéploie automatiquement en 2-3 minutes
+
+
+⚡ ÉVITER LE "COLD START" (Plan gratuit)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Le plan gratuit endort le service après 15 min d'inactivité.
+Premier appel = 10-30 secondes de délai.
+
+Solutions :
+  1. UptimeRobot (gratuit) → Pingue l'API toutes les 5 min
+     https://uptimerobot.com
+
+  2. Plan Starter ($7/mois) → Toujours actif
+
+
+📊 MONITORING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dashboard Render → Votre service
+
+  Onglet Logs     : Logs en temps réel
+  Onglet Metrics  : CPU, Memory, Requêtes, Temps de réponse
+  Onglet Settings : Configuration, domaines, variables
+
+
+💰 TARIFS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────┬────────────┬──────────────────────────────────────┐
+│    Plan     │    Prix    │         Caractéristiques             │
+├─────────────┼────────────┼──────────────────────────────────────┤
+│   Free      │    $0      │ S'endort après 15 min, 100 GB/mois   │
+│   Starter   │   $7/mois  │ Toujours actif, meilleures perfs     │
+│   Standard  │  $25/mois  │ Plus de ressources                   │
+│   Pro       │  $85/mois  │ Ressources maximales                 │
+└─────────────┴────────────┴──────────────────────────────────────┘
+
+
+🔒 SÉCURITÉ EN PRODUCTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Après déploiement, configurez CORS :
+
+  Dans Render → Environment :
+  CORS_ORIGINS = https://votre-frontend.com
+
+  Pour plusieurs domaines :
+  CORS_ORIGINS = https://site1.com,https://site2.com
+
+
+🐛 DÉPANNAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problème : Build échoué
+  → Vérifier que package.json contient "start": "node server.js"
+  → Vérifier la version Node dans engines
+
+Problème : Service ne répond pas  
+  → Vérifier les logs dans Dashboard Render
+  → Vérifier que PORT utilise process.env.PORT
+
+Problème : CORS error
+  → Configurer CORS_ORIGINS dans Environment
+
+Problème : Service lent (premier appel)
+  → Normal sur plan gratuit (cold start)
+  → Solution : UptimeRobot ou plan Starter
+
+
+🎯 CHECKLIST COMPLÈTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Avant déploiement :
+  □ Fichiers vérifiés (server.js, package.json, render.yaml)
+  □ Tests locaux OK (npm test)
+  □ Git initialisé
+  □ Dépôt GitHub créé
+
+Déploiement :
+  □ Code pushé sur GitHub
+  □ Service créé sur Render (Blueprint ou Web Service)
+  □ Build réussi (voir logs)
+  □ API accessible (test avec curl)
+
+Après déploiement :
+  □ Tests API effectués
+  □ Frontend mis à jour avec URL Render
+  □ CORS configuré pour production
+  □ UptimeRobot configuré (optionnel)
+  □ Monitoring activé
+
+
+📞 LIENS UTILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Dashboard Render    : https://dashboard.render.com
+  Documentation       : https://render.com/docs
+  Status Render       : https://status.render.com
+  Community           : https://community.render.com
+  UptimeRobot         : https://uptimerobot.com
+
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  RENDER_QUICK_START.md    → Guide rapide (5 minutes)
+  RENDER_DEPLOYMENT.md     → Guide complet (tous les détails)
+  README.md                → Documentation API
+  INDEX.md                 → Vue d'ensemble du projet
+
+
+🎯 RÉSUMÉ DU WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Développement local     : npm start → http://localhost:3000
+  Test local             : npm test
+  Commit & Push          : git push
+  Render déploie auto    : 2-3 minutes
+  API en production      : https://enedis-api.onrender.com
+  Test production        : curl https://enedis-api.onrender.com/
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+              🎉 Votre API est prête pour Render ! 🎉
+              
+              Lancez : ./deploy-render.sh
+
+═══════════════════════════════════════════════════════════════════════════════
